@@ -1,0 +1,27 @@
+Xtest <- read.table("X_test.txt")
+Xtrain <- read.table("X_train.txt")
+ytest <- read.table("y_test.txt")
+ytrain <- read.table("y_train.txt")
+subjecttest<-read.table("subject_test.txt")
+subjecttrain<-read.table("subject_train.txt")
+data <- rbind(cbind(ytest,subjecttest,Xtest), cbind(ytrain,subjecttrain,Xtrain))
+features<- read.table("features.txt")
+listofNames <-as.character(features[,2])
+listofNames <- make.names(listofNames, unique=TRUE)
+colnames(data)<- c("Activity","Subject",listofNames)
+library(dplyr)
+data_mean <-select(data, contains("mean.."))
+data_std <- select(data, contains("std.."))
+data_subj_act <-data[,1:2]
+subdata <- cbind(data_subj_act,data_mean,data_std)
+activities <- read.table("activity_labels.txt")
+subdata_actv <- merge(activities,subdata,by.x="V1",by.y="Activity")
+subdataFinal <- subdata_actv[,-1]
+names(subdataFinal)[1]<-"Activity"
+colnames(subdataFinal)
+library(plyr)
+a<-ddply(subdataFinal,.(Subject,Activity),numcolwise(mean))
+ncol(a)
+colnames(a) <- c("Subject","Activity",sub("^", "avg_", colnames(a)[3:69] ))
+a
+write.table(a,"./GettingAndCleaningDataProject.txt",row.name = FALSE)
